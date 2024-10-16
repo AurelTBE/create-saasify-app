@@ -34,6 +34,12 @@ async function main() {
       name: 'emailIntegration',
       message: 'Do you want to include email integration?',
       default: false
+    },
+    {
+      type: 'confirm',
+      name: 'stripeIntegration',
+      message: 'Do you want to include Stripe integration for subscriptions?',
+      default: true
     }
   ]);
 
@@ -82,6 +88,15 @@ async function main() {
       }
     });
 
+    // Remove Contact component if email integration is not selected
+    if (!answers.emailIntegration) {
+      const pageContent = fs.readFileSync('app/page.tsx', 'utf8');
+      const updatedPageContent = pageContent
+        .replace(/import Contact from '@\/components\/Contact';?\n?/, '')
+        .replace(/<Contact\s*\/>\n?/, '');
+      fs.writeFileSync('app/page.tsx', updatedPageContent);
+    }
+
     // Create .env.local file with placeholders
     const envContent = `
 NEXT_PUBLIC_AUTH_PROVIDER=${answers.authentication.split(' ')[0].toUpperCase()}
@@ -111,6 +126,13 @@ EMAIL_SERVER_PASSWORD=
 EMAIL_SERVER_HOST=
 EMAIL_SERVER_PORT=
 EMAIL_FROM=
+` : ''}
+${answers.stripeIntegration ? `
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+NEXT_PUBLIC_STRIPE_STARTER_PLAN_PRICE_ID=
+NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE_ID=
 ` : ''}
     `.trim();
 
@@ -184,20 +206,93 @@ export default clientPromise;
       fs.writeFileSync('lib/mongodb.ts', mongodbConfig);
     }
 
-    // Install additional dependencies
+    // Add Stripe integration if selected
+    if (answers.stripeIntegration) {
+      const stripeConfig = `
+import Stripe from 'stripe';
+
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: '2023-10-16', // Use the latest API version
+});
+
+export const PLANS = {
+  STARTER: {
+    name: 'Starter Plan',
+    price: 29,
+    features: ['Basic Support', 'Up to 100 Users', 'Core Features Access'],
+    priceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PLAN_PRICE_ID,
+  },
+  PRO: {
+    name: 'Pro Plan',
+    price: 79,
+    features: ['Priority Support', 'Up to 1,000 Users', 'Advanced Features Access', 'Custom Integrations'],
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE_ID,
+  },
+  ENTERPRISE: {
+    name: 'Enterprise Plan',
+    price: 'Custom',
+    features: ['Dedicated Support', 'Unlimited Users', 'Full Feature Access', 'Custom Development Options'],
+    priceId: null, // Typically handled through custom quotes
+  },
+};
+
+export async function createCheckoutSession(priceId: string, customerId?: string) {
+  const session = await stripe.checkout.sessions.create({
+    mode: 'subscription',
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
+    success_url: \`\${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}\`,
+    cancel_url: \`\${process.env.NEXT_PUBLIC_BASE_URL}/pricing\`,
+    customer: customerId,
+  });
+
+  return session;
+}
+
+export async function createPortalSession(customerId: string) {
+  const session = await stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: \`\${process.env.NEXT_PUBLIC_BASE_URL}/account\`,
+  });
+
+  return session;
+}
+      `.trim();
+      fs.writeFileSync('lib/stripe.ts', stripeConfig);
+
+      // We're not creating PricingPlans.tsx anymore
+      console.log(chalk.yellow('\nStripe integration has been added. You can use the existing Pricing component in components/Pricing.tsx'));
+      console.log(chalk.yellow('Make sure to update the Pricing component to use Stripe checkout when a plan is selected.'));
+    }
+
+    // Install additional dependencies with progress indicator
     spinner.text = 'Installing dependencies...';
-    execSync('npm install @radix-ui/react-icons react-icons @shadcn/ui', { stdio: 'ignore' });
+    execSync('npm install @radix-ui/react-icons react-icons @shadcn/ui stripe', { stdio: 'inherit' });
 
     spinner.succeed('Your SaaS boilerplate is ready!');
-    console.log(chalk.green(`\ncd ${answers.projectName}`));
-    console.log(chalk.green('npm run dev'));
+    console.log(chalk.green(`\nProject created successfully in ${answers.projectName}`));
     console.log(chalk.yellow('\nDon\'t forget to update your .env.local file with your actual credentials!'));
     console.log(chalk.yellow('\nTo add Shadcn/UI components, use: npx shadcn-ui@latest add <component-name>'));
+
+    if (answers.stripeIntegration) {
+      console.log(chalk.yellow('\nMake sure to set up your Stripe account and add the necessary environment variables.'));
+      console.log(chalk.yellow('Update the Pricing component in components/Pricing.tsx to integrate with Stripe checkout.'));
+    }
+
+    // Change directory to the project folder
+    process.chdir(answers.projectName);
+    console.log(chalk.green('\nYou can now start your development server:'));
+    console.log(chalk.cyan('npm run dev'));
 
   } catch (error) {
     spinner.fail('An error occurred');
     console.error(error);
   }
-}
+} // This closes the main function
 
 main();
