@@ -31,15 +31,15 @@ async function main() {
     },
     {
       type: 'confirm',
-      name: 'emailIntegration',
-      message: 'Do you want to include email integration?',
-      default: false
-    },
-    {
-      type: 'confirm',
       name: 'stripeIntegration',
       message: 'Do you want to include Stripe integration for subscriptions?',
       default: true
+    },
+    {
+      type: 'confirm',
+      name: 'emailIntegration',
+      message: 'Do you want to include email integration?',
+      default: false
     }
   ]);
 
@@ -265,9 +265,10 @@ export async function createPortalSession(customerId: string) {
       `.trim();
       fs.writeFileSync('lib/stripe.ts', stripeConfig);
 
-      // We're not creating PricingPlans.tsx anymore
+      // Stripe setup instructions
       console.log(chalk.yellow('\nStripe integration has been added. You can use the existing Pricing component in components/Pricing.tsx'));
       console.log(chalk.yellow('Make sure to update the Pricing component to use Stripe checkout when a plan is selected.'));
+      console.log(chalk.yellow('\nMake sure to set up your Stripe account and add the necessary environment variables.'));
     }
 
     // Install additional dependencies with progress indicator
@@ -278,11 +279,6 @@ export async function createPortalSession(customerId: string) {
     console.log(chalk.green(`\nProject created successfully in ${answers.projectName}`));
     console.log(chalk.yellow('\nDon\'t forget to update your .env.local file with your actual credentials!'));
     console.log(chalk.yellow('\nTo add Shadcn/UI components, use: npx shadcn-ui@latest add <component-name>'));
-
-    if (answers.stripeIntegration) {
-      console.log(chalk.yellow('\nMake sure to set up your Stripe account and add the necessary environment variables.'));
-      console.log(chalk.yellow('Update the Pricing component in components/Pricing.tsx to integrate with Stripe checkout.'));
-    }
 
     // Change directory to the project folder
     const projectPath = path.resolve(process.cwd(), answers.projectName);
