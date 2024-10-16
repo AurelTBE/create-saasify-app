@@ -1,6 +1,6 @@
 # create-saasify-app
 
-`create-saasify-app` is a CLI tool for quickly setting up a new SaaS project using the NextSaaSBoilerplate. It provides an interactive setup process to customize your new SaaS application with various authentication and database options.
+`@aureltbe/create-saasify-app` is a CLI tool for quickly setting up a new SaaS project using the NextSaaSBoilerplate. It provides an interactive setup process to customize your new SaaS application with various authentication and database options.
 
 ## Features
 

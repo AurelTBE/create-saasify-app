@@ -8,7 +8,7 @@ const ora = require('ora');
 const chalk = require('chalk');
 
 async function main() {
-  console.log(chalk.bold.cyan('Welcome to NextSaaSBoilerplate!'));
+  console.log(chalk.bold.cyan('Welcome to Sassify NextJS 14 Boilerplate!'));
 
   const answers = await inquirer.prompt([
     {

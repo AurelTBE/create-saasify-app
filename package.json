@@ -1,5 +1,5 @@
 {
-  "name": "create-saasify-app",
+  "name": "@aureltbe/create-saasify-app",
   "version": "1.0.0",
   "description": "CLI tool for creating a NextSaaSBoilerplate project",
   "main": "bin/cli.js",
@@ -15,7 +15,7 @@
     "boilerplate",
     "cli"
   ],
-  "author": "AurelTBE",
+  "author": "aureltbe",
   "license": "MIT",
   "dependencies": {
     "inquirer": "^8.2.4",
