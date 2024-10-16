@@ -285,7 +285,8 @@ export async function createPortalSession(customerId: string) {
     }
 
     // Change directory to the project folder
-    process.chdir(answers.projectName);
+    const projectPath = path.resolve(process.cwd(), answers.projectName);
+    process.chdir(projectPath);
     console.log(chalk.green('\nYou can now start your development server:'));
     console.log(chalk.cyan('npm run dev'));
 
