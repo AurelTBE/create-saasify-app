@@ -264,11 +264,6 @@ export async function createPortalSession(customerId: string) {
 }
       `.trim();
       fs.writeFileSync('lib/stripe.ts', stripeConfig);
-
-      // Stripe setup instructions
-      console.log(chalk.yellow('\nStripe integration has been added. You can use the existing Pricing component in components/Pricing.tsx'));
-      console.log(chalk.yellow('Make sure to update the Pricing component to use Stripe checkout when a plan is selected.'));
-      console.log(chalk.yellow('\nMake sure to set up your Stripe account and add the necessary environment variables.'));
     }
 
     // Install additional dependencies with progress indicator
@@ -280,10 +275,16 @@ export async function createPortalSession(customerId: string) {
     console.log(chalk.yellow('\nDon\'t forget to update your .env.local file with your actual credentials!'));
     console.log(chalk.yellow('\nTo add Shadcn/UI components, use: npx shadcn-ui@latest add <component-name>'));
 
-    // Change directory to the project folder
-    const projectPath = path.resolve(process.cwd(), answers.projectName);
-    process.chdir(projectPath);
-    console.log(chalk.green('\nYou can now start your development server:'));
+    // Stripe setup instructions
+    if (answers.stripeIntegration) {
+      console.log(chalk.yellow('\nStripe integration has been added. You can use the existing Pricing component in components/Pricing.tsx'));
+      console.log(chalk.yellow('Make sure to update the Pricing component to use Stripe checkout when a plan is selected.'));
+      console.log(chalk.yellow('\nMake sure to set up your Stripe account and add the necessary environment variables.'));
+    }
+
+    // Provide instructions to the user
+    console.log(chalk.green('\nTo start your development server, run the following commands:'));
+    console.log(chalk.cyan(`cd ${answers.projectName}`));
     console.log(chalk.cyan('npm run dev'));
 
   } catch (error) {
